@@ -1,0 +1,22 @@
+{
+    "env": {
+        "browser": true,
+        "es2021": true
+    },
+    "extends": "airbnb",
+    "parserOptions": {
+        "ecmaVersion": "latest",
+        "sourceType": "module"
+    },
+    "rules": {
+        "indent": ["error", 4],
+        "react/jsx-indent": ["error", 4],
+        "react/react-in-jsx-scope": 0,
+        "react/jsx-indent-props": ["error", 4],
+        "react/function-component-definition": 0,
+        "react/jsx-filename-extension": 0,
+        "max-len": ["error", 300],
+        "react/jsx-props-no-spreading": 0,
+        "import/prefer-default-export": 0
+    }
+}
