@@ -32,7 +32,7 @@ export const paymentMethodConverter = (paymentMethods) => {
     return [
         {
             value: '',
-            label: 'Pilih salah satu',
+            label: '-- Pilih salah satu --',
         },
         ...newPaymentMethod,
     ];

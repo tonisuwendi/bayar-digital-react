@@ -4,7 +4,9 @@ import { HiUser, HiMail, HiPhone } from 'react-icons/hi';
 import { Button } from 'flowbite-react';
 
 import FormSelectOption from '../components/FormSelectOption';
+import useInput from '../hooks/useInput';
 import { getInvoice } from '../services/endpoint/invoice';
+import { payInvoice } from '../services/endpoint/payment';
 import { catchError, currency, paymentMethodConverter } from '../helpers/utils';
 import { PAYMENT_METHOD } from '../helpers/enums';
 import {
@@ -13,13 +15,19 @@ import {
 
 const PaymentPage = () => {
     const [errorMessage, setErrorMessage] = useState('');
-    const [isLoading, setIsLoading] = useState(true);
+    const [pageLoading, setPageLoading] = useState(true);
+    const [buttonLoading, setButtonLoading] = useState(false);
     const [invoice, setInvoice] = useState({
         title: '',
         thumbnail: '',
         price: '',
         evidence: '',
     });
+
+    const [inputName, setInputName] = useInput();
+    const [inputEmail, setInputEmail] = useInput();
+    const [inputPhone, setInputPhone] = useInput();
+    const [paymentMethod, setPaymentMethod] = useInput();
 
     const { id: paramsID } = useParams();
 
@@ -31,7 +39,7 @@ const PaymentPage = () => {
         } catch (error) {
             setErrorMessage(catchError(error));
         } finally {
-            setIsLoading(false);
+            setPageLoading(false);
         }
     };
 
@@ -39,7 +47,28 @@ const PaymentPage = () => {
         handleFetchInvoice();
     }, []);
 
-    if (isLoading) return <Loading />;
+    const handlePay = async () => {
+        setButtonLoading(true);
+        try {
+            const [payMethod, paymentChannel] = paymentMethod.split('#');
+            const payload = {
+                name: inputName,
+                email: inputEmail,
+                phone: inputPhone,
+                payment_method: payMethod,
+                payment_channel: paymentChannel,
+            };
+            const response = await payInvoice(paramsID, payload);
+            if (!response.success) throw new Error(response.message);
+            setInvoice(response.data);
+        } catch (error) {
+            console.log(catchError(error));
+        } finally {
+            setButtonLoading(false);
+        }
+    };
+
+    if (pageLoading) return <Loading />;
 
     if (errorMessage) {
         return (
@@ -68,12 +97,45 @@ const PaymentPage = () => {
                 </div>
             </div>
             <div className="mt-6">
-                <FormInput id="name" label="Nama Lengkap" placeholder="Masukkan nama lengkap" icon={HiUser} />
-                <FormInput id="email" label="Email" placeholder="Masukkan email" icon={HiMail} />
-                <FormInput id="phone" label="No. Telepon" placeholder="Masukkan nomor telepon" icon={HiPhone} />
-                <FormSelectOption id="paymentMethod" label="Metode Pembayaran" data={paymentMethodData} />
+                <FormInput
+                    id="name"
+                    label="Nama Lengkap"
+                    placeholder="Masukkan nama lengkap"
+                    icon={HiUser}
+                    value={inputName}
+                    onChange={setInputName}
+                />
+                <FormInput
+                    id="email"
+                    label="Email"
+                    placeholder="Masukkan email"
+                    icon={HiMail}
+                    value={inputEmail}
+                    onChange={setInputEmail}
+                />
+                <FormInput
+                    id="phone"
+                    label="No. Telepon"
+                    placeholder="Masukkan nomor telepon"
+                    icon={HiPhone}
+                    value={inputPhone}
+                    onChange={setInputPhone}
+                />
+                <FormSelectOption
+                    id="paymentMethod"
+                    label="Metode Pembayaran"
+                    data={paymentMethodData}
+                    onChange={setPaymentMethod}
+                />
             </div>
-            <Button fullSized className="mt-5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-800 hover:to-purple-800">Lanjutkan</Button>
+            <Button
+                fullSized
+                disabled={!inputName.trim() || !inputEmail.trim() || !inputPhone.trim() || !paymentMethod || buttonLoading}
+                className="mt-5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-800 hover:to-purple-800"
+                onClick={handlePay}
+            >
+                {buttonLoading ? 'Loading...' : 'Bayar Sekarang'}
+            </Button>
         </div>
     );
 };
