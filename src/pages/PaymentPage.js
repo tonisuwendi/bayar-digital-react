@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { HiUser, HiMail, HiPhone } from 'react-icons/hi';
+import { ImSpinner2 } from 'react-icons/im';
 import { Button } from 'flowbite-react';
+import { toast } from 'react-hot-toast';
 
 import FormSelectOption from '../components/FormSelectOption';
 import useInput from '../hooks/useInput';
@@ -29,6 +31,7 @@ const PaymentPage = () => {
     const [inputPhone, setInputPhone] = useInput();
     const [paymentMethod, setPaymentMethod] = useInput();
 
+    const navigate = useNavigate();
     const { id: paramsID } = useParams();
 
     const handleFetchInvoice = async () => {
@@ -56,13 +59,13 @@ const PaymentPage = () => {
                 email: inputEmail,
                 phone: inputPhone,
                 payment_method: payMethod,
-                payment_channel: paymentChannel,
+                payment_channel: payMethod === 'qris' ? 'qris' : paymentChannel,
             };
             const response = await payInvoice(paramsID, payload);
             if (!response.success) throw new Error(response.message);
-            setInvoice(response.data);
+            navigate(`/success/${paramsID}`);
         } catch (error) {
-            console.log(catchError(error));
+            toast.error(catchError(error));
         } finally {
             setButtonLoading(false);
         }
@@ -81,7 +84,7 @@ const PaymentPage = () => {
     const paymentMethodData = paymentMethodConverter(PAYMENT_METHOD);
 
     return (
-        <div className="w-[450px] mx-auto mt-5">
+        <div className="sm:w-[450px] w-[95%] mx-auto mt-5">
             <h2 className="text-center font-bold text-indigo-600 text-2xl mb-5">bayar.digital</h2>
             <hr />
             <div className="flex mt-6 gap-4">
@@ -134,7 +137,12 @@ const PaymentPage = () => {
                 className="mt-5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-800 hover:to-purple-800"
                 onClick={handlePay}
             >
-                {buttonLoading ? 'Loading...' : 'Bayar Sekarang'}
+                {buttonLoading ? (
+                    <>
+                        <ImSpinner2 className="animate-spin mr-2" />
+                        Loading...
+                    </>
+                ) : 'Bayar Sekarang'}
             </Button>
         </div>
     );

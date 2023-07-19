@@ -37,3 +37,30 @@ export const paymentMethodConverter = (paymentMethods) => {
         ...newPaymentMethod,
     ];
 };
+
+export const formatDateToIndonesian = (dateString) => {
+    const months = [
+        'Januari',
+        'Februari',
+        'Maret',
+        'April',
+        'Mei',
+        'Juni',
+        'Juli',
+        'Agustus',
+        'September',
+        'Oktober',
+        'November',
+        'Desember',
+    ];
+
+    const dateObj = new Date(dateString);
+    const day = dateObj.getDate();
+    const monthIndex = dateObj.getMonth();
+    const year = dateObj.getFullYear();
+    const hours = dateObj.getHours();
+    const minutes = dateObj.getMinutes();
+
+    const formattedDate = `${day} ${months[monthIndex]} ${year}, ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')} WIB`;
+    return formattedDate;
+};

@@ -5,3 +5,4 @@ const endpoint = {
 };
 
 export const payInvoice = (id, payload) => configAPI(endpoint.pay(id), 'POST', payload);
+export const getPayment = (id) => configAPI(endpoint.pay(id));
