@@ -87,16 +87,18 @@ const PaymentPage = () => {
         <div className="sm:w-[450px] w-[95%] mx-auto mt-5">
             <h2 className="text-center font-bold text-indigo-600 text-2xl mb-5">bayar.digital</h2>
             <hr />
-            <div className="flex mt-6 gap-4">
+            <div className="flex mt-6 justify-between">
                 <a href={invoice.thumbnail} target="_blank" rel="noreferrer">
-                    <img src={invoice.thumbnail} alt="thumbnail" className="w-[100px] shrink" />
+                    <img src={invoice.thumbnail} alt="thumbnail" className="w-[100px]" />
                 </a>
-                <div>
+                <div className="w-[calc(100%-116px)]">
                     <h4 className="text-md font-medium text-slate-700">{invoice.title}</h4>
                     <h3 className="text-xl font-bold text-indigo-700">{currency(invoice.price)}</h3>
-                    <a href={invoice.evidence} target="_blank" rel="noreferrer">
-                        <Button size="xs" color="success" className="mt-2 inline">Tampilkan bukti</Button>
-                    </a>
+                    {!!invoice.evidence && (
+                        <a href={invoice.evidence} target="_blank" rel="noreferrer">
+                            <Button size="xs" color="success" className="mt-2 inline">Tampilkan bukti</Button>
+                        </a>
+                    )}
                 </div>
             </div>
             <div className="mt-6">
