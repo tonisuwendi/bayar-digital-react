@@ -4,6 +4,7 @@ import { Toaster } from 'react-hot-toast';
 import HomePage from './pages/HomePage';
 import PaymentPage from './pages/PaymentPage';
 import SuccessPage from './pages/SuccessPage';
+import NotFound from './pages/NotFound';
 
 const router = createBrowserRouter([
     {
@@ -17,6 +18,10 @@ const router = createBrowserRouter([
     {
         path: '/success/:id',
         element: <SuccessPage />,
+    },
+    {
+        path: '*',
+        element: <NotFound />,
     },
 ]);
 

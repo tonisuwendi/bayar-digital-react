@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { MdContentCopy } from 'react-icons/md';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { toast } from 'react-hot-toast';
@@ -11,13 +11,10 @@ import {
 import { getPayment } from '../services/endpoint/payment';
 import { catchError, currency, formatDateToIndonesian } from '../helpers/utils';
 import { PAYMENT_METHOD } from '../helpers/enums';
-import {
-    AlertInfo, FancyLayout, Loading, PaymentStatus, Title,
-} from '../components';
+import { AlertInfo, Loading, PaymentStatus } from '../components';
 
 const SuccessPage = () => {
     const [pageLoading, setPageLoading] = useState(true);
-    const [errorMessage, setErrorMessage] = useState(null);
     const [payment, setPayment] = useState({
         invoice: '',
         amount: '',
@@ -29,6 +26,16 @@ const SuccessPage = () => {
         buyer_phone: '',
         buyer_email: '',
         qr_code: '',
+        info_message: {
+            pending: '',
+            success: '',
+            expired: '',
+        },
+        external_link: {
+            is_active: false,
+            button_label: '',
+            link: '',
+        },
     });
 
     const navigate = useNavigate();
@@ -42,17 +49,27 @@ const SuccessPage = () => {
             setPageLoading(false);
         } catch (error) {
             const errorText = catchError(error);
-            if (errorText === 'Silakan pilih pembayaran dulu.') {
+            if (errorText === 'Silakan pilih pembayaran dulu.' || errorText === 'Invoice tidak ditemukan.') {
                 navigate(`/${paramsID}`);
             } else {
-                setErrorMessage(catchError(error));
+                toast.error(catchError(error));
             }
         }
     };
 
     useEffect(() => {
-        handleFetchPayment();
-    }, [paramsID]);
+        let intervalPayment;
+
+        if (payment.status === 0) {
+            intervalPayment = setInterval(() => {
+                handleFetchPayment();
+            }, 5000);
+        } else {
+            clearInterval(intervalPayment);
+        }
+
+        return () => clearInterval(intervalPayment);
+    }, [paramsID, payment]);
 
     const handleCopy = () => {
         toast.success('No. pembayaran berhasil disalin!');
@@ -60,21 +77,20 @@ const SuccessPage = () => {
 
     if (pageLoading) return <Loading />;
 
-    if (errorMessage) {
-        return (
-            <FancyLayout>
-                <Title className="md:text-4xl text-xl">{errorMessage}</Title>
-            </FancyLayout>
-        );
-    }
-
     const paymentData = PAYMENT_METHOD.find((payMethod) => payMethod.channel === payment.payment_channel);
+
+    const handleOpenExternalLink = () => window.open(payment.external_link.link, '_blank');
 
     return (
         <div className="sm:w-[450px] w-[95%] mb-10 mx-auto mt-5">
             <h2 className="text-center font-bold text-indigo-600 text-2xl mb-5">bayar.digital</h2>
             <hr />
-            <AlertInfo value={payment.status} />
+            <AlertInfo value={payment.status} infoMessage={payment.info_message} />
+            {payment.status === -2 && (
+                <Link to={`/${paramsID}`}>
+                    <Button size="sm" className="mb-3 inline" color="warning">Checkout Ulang</Button>
+                </Link>
+            )}
             <Table>
                 <Table.Body>
                     <Table.Row>
@@ -174,6 +190,11 @@ const SuccessPage = () => {
                         </div>
                     </Card>
                 </>
+            )}
+            {payment.status === 1 && payment.external_link.is_active && (
+                <Card className="mt-2 border-none">
+                    <Button onClick={handleOpenExternalLink}>{payment.external_link.button_label}</Button>
+                </Card>
             )}
         </div>
     );
